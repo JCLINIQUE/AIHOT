@@ -1,194 +1,120 @@
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/banner-dark.png">
-    <img src="docs/assets/banner-light.png" alt="AIHOT：每个行业，都可以有自己的 AIHOT。很多条信源流进中间的精选，再分给法律、人力资源、金融等各个行业" width="100%">
-  </picture>
-</p>
+# 跨境电商商品调研
 
-<p align="center">
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-176b75?style=flat-square" alt="MIT License"></a>
-  <img src="https://img.shields.io/badge/Node.js-24-176b75?style=flat-square&logo=nodedotjs&logoColor=white" alt="Node.js 24">
-  <img src="https://img.shields.io/badge/PostgreSQL-17-176b75?style=flat-square&logo=postgresql&logoColor=white" alt="PostgreSQL 17">
-  <img src="https://img.shields.io/badge/Docker-Compose-176b75?style=flat-square&logo=docker&logoColor=white" alt="Docker Compose">
-  <a href="https://aihot.news"><img src="https://img.shields.io/badge/demo-aihot.news-202a30?style=flat-square" alt="aihot.news"></a>
-</p>
+面向 TikTok Shop 和 Amazon 选品团队的内部调研工具。输入商品关键词或商品 ID，系统自动查询数据、整理证据，并生成每条结论都能追溯来源的中文调研报告。
 
-<p align="center">
-  <b>一个自己找热点、自己写日报的网站框架。</b><br>
-  把信源换成你的，把精选标准换成你的 KnowHow，它就是你的行业热点站。
-</p>
+当前版本是 **Amazon US MVP**：已经跑通 Amazon 商品调研主流程，并为后续接入 TikTok Shop 和更多数据来源保留了统一的证据结构。
 
-<p align="center">
-  <a href="#跑起来">跑起来</a> ·
-  <a href="docs/customize.md">改成你的行业</a> ·
-  <a href="#它是怎么工作的">它是怎么工作的</a> ·
-  <a href="#文档">文档</a>
-</p>
+## 当前能做什么
 
-<br>
+- 输入一个 Amazon ASIN，查看商品价格、评分、评价数量、近 30 天订单指标和近 7 天流量得分。
+- 输入英文商品关键词，取得最多 5 个相关商品样本并横向比较。
+- 自动生成中文调研结论，每条结论附带证据编号。
+- 展示查询时间、数据窗口、供应商工具和原始商品链接。
+- 明确列出缺失的 TikTok、评论正文、成本和利润数据，不让模型补数。
+- 保存历史调研；刷新或重新打开报告不会再次调用付费服务。
+- 支持任务幂等、失败恢复、请求预算和付费调用回执。
 
-## 这是什么
+后台入口：`/admin/research`
 
-[AIHOT](https://aihot.news) 是我做的一个 AI 热点网站。它每天从一批信源里收资料，用大模型先筛一遍、再独立打两次分，挑出真正值得看的，写成中文标题和摘要；把不同来源说的同一件事聚成一个事件，按有多少人在说排出热点；每天早上出一份日报。
-
-这个仓库是它的完整框架：网站、后台、精选流程、聚簇和热度算法，**所有提示词的原文和入选门槛**，都在这里。
-
-## 为什么开源
-
-这半年，很多做法律、做 HR、做金融、做贵金属的朋友问我，能不能也给他们的行业做一个。
-
-我做不了。我不懂你们的行业，不知道哪些信源有用，也不知道什么样的消息，对你们来说才叫热点。
-
-但你们懂。
-
-既然我没办法满足所有人，那就把火种交到大家自己手上。
-
-## 说在前面
-
-- **我不是专业的开发者。** 我是设计师出身，半年前还看不太懂代码。这套代码是我和 AI 一起重写的，比以前干净了很多，但一定还有写得不好的地方。发现问题欢迎提 Issue，我不一定能很快回复，先说声抱歉。
-- **这是一份快照。** 它来自 AIHOT 正在线上跑的代码，不是精心打磨的通用框架。以后 AIHOT 的更新，我会尽量同步过来，但没法保证每一次都同步。
-- **里面没有 AIHOT 的信源名单和运营数据。** 仓库带了 18 个公开的海外 AI 资讯源做示范，够你跑起来看效果；真正的信源，要换成你自己行业的。
-- **请不要用 AIHOT 的名字和 Logo。** 换上你自己的名字，它就是你的站。
-
-## 它是怎么工作的
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/how-dark.png">
-  <img src="docs/assets/how-light.png" alt="六步：采集、预筛、两次评分、写作、聚簇、热点与成刊" width="100%">
-</picture>
-
-一条资料从信源进来，先判重，再预筛；可能重要的独立打两次分，过了门槛才进精选；然后写中文标题和摘要，和别的报道聚成事件，算进热度，最后进日报。每一步的提示词都在 [`industry/prompts/`](industry/prompts/)，改标准不用改代码。详见 [精选与校准](docs/selection.md)。
-
-### 聚簇与热点
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/cluster-dark.png">
-  <img src="docs/assets/cluster-light.png" alt="五个来源的报道聚成一个事件，事件进入当前热点榜" width="100%">
-</picture>
-
-同一件事，官网发一篇、媒体转十篇、X 上吵一天，读者只需要看到一次。AIHOT 把它们聚成一个**事件**：先用标题摘要的向量在最近两周里找候选，再让模型判断是同一件事、后续进展，还是两件事；拿不准的合并，换一家模型再确认一遍。
-
-**热度**按事件算，不按文章算：48 小时内，每个独立来源只算一次，24 小时减半。重复抓取不会多算，一家媒体发十篇也只算一次，所以排在前面的，是真正有很多人在说的事。
-
-### 速度
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/perf-dark.png">
-  <img src="docs/assets/perf-light.png" alt="AIHOT 线上实测：页面中位数 10 毫秒，95% 在 50 毫秒内；接口中位数 6 毫秒，95% 在 12 毫秒内；文章页 95% 在 14 毫秒内" width="100%">
-</picture>
-
-## 你会得到什么
-
-| | |
-|---|---|
-| **六种信源** | RSS、网页列表、JSON 接口、X 账号、微信公众号，以及你自己脚本推送进来的内容。信源分级（官方一手 / 媒体个人），抓取频率按产出自动调整 |
-| **精选** | 预筛，同一份评分标准独立打两次分，再按信源分级的门槛决定入选。提示词和门槛全部公开，全部可以改；用你自己标注的样本在 SelectBench 里校准 |
-| **写作** | 中文标题、答案先行的摘要、推荐理由、标签，外文全文翻译；防止模型把原文没提到的公司写进标题 |
-| **聚簇** | 不同来源报道的同一件事聚成一个事件，后续进展挂在同一个事件下，事件页有综述；人工改过的归属不会被覆盖 |
-| **热点** | 按事件算热度：独立来源越多越靠前，X 上的讨论也算进来；和 6 小时前比，涨得快的标上升，新出现的标“新” |
-| **日报、周报、月报** | 每天 08:00 出日报，每周一出周报，每月 1 日出月报，按分类分节，带导语 |
-| **主题与搜索** | 公司、方向、内容形态三类主题页；标题摘要搜索和全文相关搜索 |
-| **给 Agent 用** | RSS（精选、全部、全文、日报）、公开 API、MCP、`llms.txt`，同一份内容给人看也给 Agent 用 |
-| **后台** | 信源管理与试抓、内容诊断、精选评测、每一步单独换模型、付费服务的预算熔断、运行记录与告警 |
-| **商品调研 MVP** | 后台输入 Amazon US 的单个 ASIN 或英文关键词，查询最多 5 个代表商品，保存价格、评分、近 30 天订单指标和近 7 天流量得分，生成带证据编号的内部简报 |
-| **AI 专属模块** | 模型榜（汇总多家公开评测，方法公开）和 Codex 重置监控。别的行业一个开关关掉 |
-
-## 看一眼
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/shots-dark.png">
-  <img src="docs/assets/shots-light.png" alt="首页的当前热点与精选，关于页的信源河" width="100%">
-</picture>
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/board-dark.png">
-  <img src="docs/assets/board-light.png" alt="模型榜" width="100%">
-</picture>
-
-<p align="center"><sub>截图来自用示范信源跑起来的本地站，站名是默认的 MyHOT。</sub></p>
-
-## 跑起来
-
-需要 [Docker](https://docs.docker.com/get-docker/)，和一个 OpenAI 兼容的模型 API Key（DeepSeek、千问、智谱都可以）。
-
-```bash
-git clone https://github.com/KKKKhazix/AIHOT.git myhot
-cd myhot
-node scripts/init-env.ts --llm-key <你的模型 API Key>
-docker compose up -d --build
-```
-
-打开 <http://localhost:3000>。后台在 `/admin`，管理员密码在 `.env` 的 `ADMIN_PASSWORD` 里。一两分钟后开始有内容，第一次导入的资料大约半小时处理完。
-
-机器上没有 Node、服务器在中国大陆、要配域名和 HTTPS，见 [部署](docs/deploy.md)。
-
-## 把它改成你的行业
-
-最省事的办法：打开你的 Agent（Claude Code、Codex 都可以），把这个仓库交给它，然后说：
+## 使用流程
 
 ```text
-请读 AGENTS.md 和 docs/customize.md，把这个站改成「法律」行业的热点站。
-我关心的是：……（你想盯哪些信源，你觉得什么消息重要、什么不重要，越具体越好）。
+输入关键词或 ASIN
+        ↓
+查找目标商品
+        ↓
+补充商品、订单和流量指标
+        ↓
+保存数据快照与证据
+        ↓
+生成带引用的中文报告
+        ↓
+在后台回看和核对来源
 ```
 
-要改的东西几乎都在 [`industry/`](industry/) 这一个文件夹里，代码基本不用动：
+关键词调研最多保留 5 个不同 ASIN。它们是关键词相关的竞争样本，不代表 Amazon 全站热销榜，也不会被用于推算整个市场规模。
 
-| 文件 | 改什么 |
+## 报告内容
+
+每份报告包含四部分：
+
+1. **调研范围**：输入内容、市场、生成时间、数据窗口和当前缺口。
+2. **商品对比**：价格、星级、评价数量、订单指标和流量得分。
+3. **研究结论**：最多 3 条有证据支持的发现，以及最多 2 条下一步核查建议。
+4. **证据清单**：每个指标对应的工具、查询参数、时间范围、数据快照和来源链接。
+
+报告不会把流量得分写成访客数，不会混算 30 天订单和 7 天流量，也不会在没有成本数据时生成利润率。
+
+## 数据来源
+
+Amazon US 数据通过[西柚洞察 MCP](https://platform.xydc.com/)获取。当前固定使用以下能力：
+
+| 调研步骤 | MCP 工具 |
 |---|---|
-| `site.ts` | 站名、行业词、首页文案、关于页 |
-| `taxonomy.ts`、`topics.json` | 分类、标签、主题 |
-| `sources.json` | 首次启动时导入的信源 |
-| `prompts/` | 精选标准和写作要求。**你的行业 KnowHow，就写在这里** |
-| `selection.ts` | 入选门槛 |
-| `features.ts` | 模型榜、Codex 重置监控的开关 |
-| `brand/`、`pages/` | 图标、使用规则和隐私说明 |
+| 关键词相关商品 | `get_keyword_asin_analysis` |
+| 关键词指标 | `get_keyword_info` |
+| 商品信息 | `get_asin_info` |
+| 近 30 天订单指标 | `get_asin_orders_last_30_days` |
+| 近 7 天流量指标 | `get_asin_traffic` |
 
-最值得花时间的是评分标准（`prompts/selection-score.md`）和门槛：拿一两百条你自己标注过的资料，用 `scripts/eval-selection.ts` 跑一遍，看它选得准不准，再回去改。怎么做写在 [精选与校准](docs/selection.md) 里。
+多个工具提供的是同一家供应商的不同数据维度，因此当前报告属于 Amazon 单来源调研。真实 MCP 账号的字段完整性、延迟和收费仍需用小流量任务验收。
 
-## 商品调研 MVP
+## 启动
 
-仓库包含一个独立的内部商品调研入口：登录后台后打开 `/admin/research`，可以输入 Amazon US 的单个 ASIN，或输入英文商品关键词并取得最多 5 个代表商品。后台任务会保存每次数据查询的时间窗口和证据快照，再生成中文简报；查看历史报告不会重复调用数据服务。
+需要 Node.js 24、PostgreSQL，以及一个 OpenAI 兼容的模型服务。
 
-首版使用[西柚洞察 MCP](https://platform.xydc.com/)，只覆盖 Amazon US。它不会把供应商的“流量得分”写成访客数，也不会用近 30 天订单指标除以近 7 天流量得分；TikTok、评论正文和公司成本会明确列为证据缺口。设计与验收口径见 [商品调研 MVP](docs/mvp-product-research.md)。
+```bash
+npm install
+node scripts/init-env.ts --llm-key <模型 API Key>
+```
 
-在 `.env` 中配置以下两项后重启 worker：
+然后在 `.env` 中增加西柚 MCP 配置：
 
 ```bash
 XIYOU_MCP_URL=https://your-mcp.example.com/mcp
 XIYOU_MCP_TOKEN=<访问令牌>
 ```
 
-`XIYOU_MCP_URL` 使用标准 MCP Streamable HTTP；凭证只在 worker 中读取。`.env`、本地 MCP 配置、密钥文件和 `credentials/` 已加入忽略规则，不能提交到 Git。新迁移会为 `xiyou-mcp` 建立默认请求预算，可在后台“设置 → 预算”继续收紧。
+启动完整服务：
 
-开发和测试时不连接外部服务。真实接入前先在测试环境验证 MCP 地址、工具名称、字段和费用；没有配置连接时，原有新闻采集与发布功能照常运行。
+```bash
+docker compose up -d --build
+```
 
-## 文档
+打开 <http://localhost:3000/admin/research>，登录后台后即可创建调研任务。
 
-| 文档 | 内容 |
-|---|---|
-| [把它改成你的行业](docs/customize.md) | 站名、分类、信源、提示词、门槛、品牌，一步一步来 |
-| [信源](docs/sources.md) | 六种信源怎么配，分级和全文，外部推送接口 |
-| [精选与校准](docs/selection.md) | 一条资料怎么变成精选，怎么用自己的样本校准 |
-| [部署](docs/deploy.md) | Docker、域名和 HTTPS、中国大陆、更新、备份、花多少钱 |
-| [架构](docs/architecture.md) | 三个进程、几条不变的规则、目录、对外出口 |
-| [模型榜与 Codex 重置监控](docs/leaderboard.md) | 两个 AI 专属模块 |
+## 凭据与费用安全
 
-技术栈：Node.js 24 · TypeScript · React Router（服务端渲染）· Fastify · PostgreSQL · pg-boss · Tailwind CSS · Docker Compose。
+- MCP Token 只由 worker 读取，只放在请求头中，不写入任务、证据或调用摘要。
+- `.env`、`.mcp/`、本地 MCP 配置、`credentials/`、私钥和证书文件均已加入 Git 忽略规则。
+- 每次 MCP 和模型调用都经过回执与预算熔断。
+- 同一任务恢复时复用已经完成的付费步骤，不重复购买相同结果。
+- 自动测试只连接本地假服务，不访问真实 MCP 或模型接口。
 
-## 最后
+## 结构
 
-AIHOT 曾经只是我无数个深夜里，一个很小、很小的念头。
+```text
+后台页面
+  └─ HTTP API
+      └─ research.run 队列
+          ├─ 西柚 MCP：商品数据
+          ├─ 模型：结构化调研结论
+          └─ PostgreSQL：任务、证据、报告和回执
+```
 
-我不知道它会被改成什么样子，会走到多远的地方。但这可能就是开源最浪漫的地方。
+浏览器只读取已经保存的结果。MCP、模型、数据库和密钥全部位于后端与 worker，打开报告页面不会触发新的付费调用。
 
-剩下的路，就交给你们了。
+## 下一步
 
-<p align="right">—— 数字生命卡兹克</p>
+1. 接入 TikTok Shop 美国站 MCP，先支持明确的商品链接或商品 ID。
+2. 将 Amazon 与 TikTok 证据分区展示，由用户确认是否为同款商品。
+3. 增加评论正文、搜索趋势和更多独立来源，实现真正的多源交叉验证。
+4. 在数据口径稳定后增加监控、提醒和导出能力。
 
-## 许可
+在 TikTok 数据连接器完成前，界面不会展示虚构的 TikTok 指标，也不会把 Amazon 单来源报告称为跨平台调研。
 
-代码使用 [MIT 许可证](LICENSE)。AIHOT 的名字和 Logo 不在许可范围内。字体、模型厂商和评测来源的标志各有自己的许可和商标归属，见 [NOTICE](NOTICE)。
+详细的数据口径、异常处理和验收标准见[商品调研 MVP 设计](docs/mvp-product-research.md)。
 
----
+## License
 
-<sub>**In English:** AIHOT ([aihot.news](https://aihot.news)) is an AI news site that collects from many sources, lets a language model filter and score every item twice, writes Chinese headlines and summaries, clusters reports of the same story into one event, ranks events by how many independent sources discuss them, and publishes a daily briefing. This repository is its complete framework, including every prompt and threshold. Hand it to your coding agent with `AGENTS.md` and `docs/customize.md` to turn it into a news site for your own field. The documentation is in Chinese.</sub>
+[MIT](LICENSE)
