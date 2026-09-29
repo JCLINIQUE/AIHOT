@@ -2,10 +2,21 @@
 .env.*
 !.env.example
 node_modules/
+.pnpm-store/
 dist/
 .cache/
 .DS_Store
 .data/
+
+# Local MCP/API credentials and connection profiles. Commit only the documented .env.example.
+.mcp/
+.mcp.json
+mcp.local.json
+*.mcp.local.json
+.secrets/
+credentials/
+*.key
+*.pem
 
 # Web production build
 apps/web/build/

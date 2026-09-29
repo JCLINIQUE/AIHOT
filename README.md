@@ -90,6 +90,7 @@
 | **主题与搜索** | 公司、方向、内容形态三类主题页；标题摘要搜索和全文相关搜索 |
 | **给 Agent 用** | RSS（精选、全部、全文、日报）、公开 API、MCP、`llms.txt`，同一份内容给人看也给 Agent 用 |
 | **后台** | 信源管理与试抓、内容诊断、精选评测、每一步单独换模型、付费服务的预算熔断、运行记录与告警 |
+| **商品调研 MVP** | 后台输入 Amazon US 的单个 ASIN 或英文关键词，查询最多 5 个代表商品，保存价格、评分、近 30 天订单指标和近 7 天流量得分，生成带证据编号的内部简报 |
 | **AI 专属模块** | 模型榜（汇总多家公开评测，方法公开）和 Codex 重置监控。别的行业一个开关关掉 |
 
 ## 看一眼
@@ -143,6 +144,23 @@ docker compose up -d --build
 | `brand/`、`pages/` | 图标、使用规则和隐私说明 |
 
 最值得花时间的是评分标准（`prompts/selection-score.md`）和门槛：拿一两百条你自己标注过的资料，用 `scripts/eval-selection.ts` 跑一遍，看它选得准不准，再回去改。怎么做写在 [精选与校准](docs/selection.md) 里。
+
+## 商品调研 MVP
+
+仓库包含一个独立的内部商品调研入口：登录后台后打开 `/admin/research`，可以输入 Amazon US 的单个 ASIN，或输入英文商品关键词并取得最多 5 个代表商品。后台任务会保存每次数据查询的时间窗口和证据快照，再生成中文简报；查看历史报告不会重复调用数据服务。
+
+首版使用[西柚洞察 MCP](https://platform.xydc.com/)，只覆盖 Amazon US。它不会把供应商的“流量得分”写成访客数，也不会用近 30 天订单指标除以近 7 天流量得分；TikTok、评论正文和公司成本会明确列为证据缺口。设计与验收口径见 [商品调研 MVP](docs/mvp-product-research.md)。
+
+在 `.env` 中配置以下两项后重启 worker：
+
+```bash
+XIYOU_MCP_URL=https://your-mcp.example.com/mcp
+XIYOU_MCP_TOKEN=<访问令牌>
+```
+
+`XIYOU_MCP_URL` 使用标准 MCP Streamable HTTP；凭证只在 worker 中读取。`.env`、本地 MCP 配置、密钥文件和 `credentials/` 已加入忽略规则，不能提交到 Git。新迁移会为 `xiyou-mcp` 建立默认请求预算，可在后台“设置 → 预算”继续收紧。
+
+开发和测试时不连接外部服务。真实接入前先在测试环境验证 MCP 地址、工具名称、字段和费用；没有配置连接时，原有新闻采集与发布功能照常运行。
 
 ## 文档
 
